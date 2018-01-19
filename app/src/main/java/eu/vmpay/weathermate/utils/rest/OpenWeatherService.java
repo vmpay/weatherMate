@@ -1,4 +1,4 @@
-package eu.vmpay.weathermate.utils;
+package eu.vmpay.weathermate.utils.rest;
 
 import io.reactivex.Flowable;
 import retrofit2.http.GET;

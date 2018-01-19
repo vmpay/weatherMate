@@ -44,7 +44,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 		{
 			mainPresenter = MainPresenter.getInstance();
 		}
-		mainPresenter.setUp();
+		mainPresenter.setUp(this);
 
 		// Enables Always-on
 		setAmbientEnabled();
@@ -102,6 +102,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 		pbRefresh.setVisibility(View.VISIBLE);
 		llWeather.setVisibility(View.GONE);
 
-		mainPresenter.updateWeather();
+		mainPresenter.updateLocation();
 	}
+
 }

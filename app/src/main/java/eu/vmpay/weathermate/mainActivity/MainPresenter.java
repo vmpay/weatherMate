@@ -1,14 +1,27 @@
 package eu.vmpay.weathermate.mainActivity;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.reactivestreams.Subscription;
 
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import eu.vmpay.weathermate.utils.OpenWeatherService;
-import eu.vmpay.weathermate.utils.WeatherResponse;
+import eu.vmpay.weathermate.utils.rest.OpenWeatherService;
+import eu.vmpay.weathermate.utils.rest.WeatherResponse;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subscribers.DisposableSubscriber;
@@ -32,6 +45,9 @@ public class MainPresenter implements MainContract.Presenter
 
 	private MainContract.View mainView;
 	private DisposableSubscriber<WeatherResponse> refreshDisposable;
+	private FusedLocationProviderClient mFusedLocationClient;
+	private Activity activity;
+	private Location currentLocation;
 
 	private MainPresenter()
 	{
@@ -42,8 +58,9 @@ public class MainPresenter implements MainContract.Presenter
 		return instance;
 	}
 
-	public void setUp()
+	public void setUp(Activity activity)
 	{
+		this.activity = activity;
 		Log.d(TAG, "setUp");
 		retrofit = new Retrofit.Builder()
 				.baseUrl(BASE_URL + "data/")
@@ -51,6 +68,8 @@ public class MainPresenter implements MainContract.Presenter
 				.addConverterFactory(GsonConverterFactory.create())
 				.build();
 		openWeatherService = retrofit.create(OpenWeatherService.class);
+
+		mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
 	}
 
 
@@ -64,7 +83,7 @@ public class MainPresenter implements MainContract.Presenter
 	{
 		Log.d(TAG, "takeView");
 		mainView = view;
-		loadWeather();
+		updateLocation();
 	}
 
 	/**
@@ -86,11 +105,51 @@ public class MainPresenter implements MainContract.Presenter
 	@Override
 	public void updateLocation()
 	{
+		if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+				&& ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+		{
+			ActivityCompat.requestPermissions(activity, new String[] {
+					Manifest.permission.ACCESS_COARSE_LOCATION }, 111);
+			return;
+		}
+		mFusedLocationClient.requestLocationUpdates(new LocationRequest(), new LocationCallback(), null);
 
+		mFusedLocationClient.getLastLocation()
+				.addOnSuccessListener(new OnSuccessListener<Location>()
+				{
+					@Override
+					public void onSuccess(Location location)
+					{
+						if(location != null)
+						{
+							Log.d(TAG, location.toString());
+						}
+						currentLocation = location;
+						loadWeather();
+					}
+				})
+				.addOnFailureListener(new OnFailureListener()
+				{
+					@Override
+					public void onFailure(@NonNull Exception e)
+					{
+						Log.d(TAG, e.toString());
+						currentLocation = null;
+						loadWeather();
+					}
+				});
 	}
 
 	private void loadWeather()
 	{
+		String lat = "52.229816";
+		String lon = "21.011761";
+		if(currentLocation != null)
+		{
+			lat = String.format(Locale.US, "%f", currentLocation.getLatitude());
+			lon = String.format(Locale.US, "%f", currentLocation.getLongitude());
+		}
+		Log.d(TAG, String.format(Locale.US, "lat: %s, lon: %s", lat, lon));
 		if(openWeatherService != null)
 		{
 			if(refreshDisposable != null)
@@ -99,7 +158,7 @@ public class MainPresenter implements MainContract.Presenter
 			}
 
 			refreshDisposable =
-					openWeatherService.getWeatherByCoordinates("15646a06818f61f7b8d7823ca833e1ce", "52.229816", "21.011761", "metric")
+					openWeatherService.getWeatherByCoordinates("15646a06818f61f7b8d7823ca833e1ce", lat, lon, "metric")
 							.delay(600, TimeUnit.MILLISECONDS)
 							.subscribeOn(Schedulers.newThread())
 							.observeOn(AndroidSchedulers.mainThread())

@@ -1,5 +1,5 @@
 
-package eu.vmpay.weathermate.utils;
+package eu.vmpay.weathermate.utils.rest;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
