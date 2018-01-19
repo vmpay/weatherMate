@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.wear.widget.BoxInsetLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="@color/dark_grey"
+	android:padding="@dimen/box_inset_layout_padding"
+	tools:context="eu.vmpay.weathermate.mainActivity.MainActivity"
+	tools:deviceIds="wear">
+
+	<RelativeLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		app:boxedEdges="all">
+
+		<ProgressBar
+			android:id="@+id/pbRefresh"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerInParent="true"
+			android:indeterminate="true"
+			android:visibility="gone"/>
+
+		<LinearLayout
+			android:id="@+id/llWeather"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:gravity="center"
+			android:onClick="refresh"
+			android:orientation="vertical"
+			android:padding="@dimen/inner_frame_layout_padding">
+
+			<TextView
+				android:id="@+id/tvCity"
+				android:textSize="30sp"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="City"/>
+
+			<TextView
+				android:id="@+id/tvTemperature"
+				android:textSize="40sp"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Temperature"/>
+
+			<TextView
+				android:id="@+id/tvDescription"
+				android:textSize="30sp"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Description"/>
+
+		</LinearLayout>
+
+	</RelativeLayout>
+</android.support.wear.widget.BoxInsetLayout>
+
