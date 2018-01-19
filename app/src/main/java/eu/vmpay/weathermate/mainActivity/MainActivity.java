@@ -3,10 +3,14 @@ package eu.vmpay.weathermate.mainActivity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.wearable.activity.WearableActivity;
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.Locale;
 
@@ -20,7 +24,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 
 	private TextView tvCity;
 	private TextView tvTemperature;
-	private TextView tvDescription;
+	private ImageView ivWeather;
 	private ProgressBar pbRefresh;
 	private LinearLayout llWeather;
 
@@ -32,7 +36,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 
 		tvCity = findViewById(R.id.tvCity);
 		tvTemperature = findViewById(R.id.tvTemperature);
-		tvDescription = findViewById(R.id.tvDescription);
+		ivWeather = findViewById(R.id.ivWeather);
 		pbRefresh = findViewById(R.id.pbRefresh);
 		llWeather = findViewById(R.id.llWeather);
 
@@ -65,7 +69,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	{
 		tvCity.setText(R.string.empty_string);
 		tvTemperature.setText(R.string.network_error);
-		tvDescription.setText(R.string.empty_string);
+		ivWeather.setImageResource(R.mipmap.ic_launcher);
 	}
 
 	@Override
@@ -73,24 +77,31 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	{
 		tvCity.setText(R.string.empty_string);
 		tvTemperature.setText(R.string.unknown_error);
-		tvDescription.setText(R.string.empty_string);
+		ivWeather.setImageResource(R.mipmap.ic_launcher);
 	}
 
 	@Override
 	public void showWeather(@NonNull String city, @NonNull String shortDescription, @NonNull Double temperature)
 	{
-
 		tvCity.setText(city);
 		tvTemperature.setText(String.format(Locale.US, "%.2f C\u00b0", temperature));
-		tvDescription.setText(shortDescription);
+
 		pbRefresh.setVisibility(View.GONE);
 		llWeather.setVisibility(View.VISIBLE);
+	}
+
+	@Override
+	public void showIcon(String url)
+	{
+		Log.d(TAG, "Url " + url);
+		Picasso.with(this).load(url).into(ivWeather);
 	}
 
 	public void refresh(View view)
 	{
 		pbRefresh.setVisibility(View.VISIBLE);
 		llWeather.setVisibility(View.GONE);
+
 		mainPresenter.updateWeather();
 	}
 }

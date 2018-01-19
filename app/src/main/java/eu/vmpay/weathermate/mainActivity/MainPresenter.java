@@ -4,6 +4,7 @@ import android.util.Log;
 
 import org.reactivestreams.Subscription;
 
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import eu.vmpay.weathermate.utils.OpenWeatherService;
@@ -22,6 +23,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainPresenter implements MainContract.Presenter
 {
 	private final String TAG = "MainPresenter";
+	private final String BASE_URL = "https://api.openweathermap.org/";
 
 	private static MainPresenter instance = new MainPresenter();
 
@@ -44,7 +46,7 @@ public class MainPresenter implements MainContract.Presenter
 	{
 		Log.d(TAG, "setUp");
 		retrofit = new Retrofit.Builder()
-				.baseUrl("https://api.openweathermap.org/data/")
+				.baseUrl(BASE_URL + "data/")
 				.addCallAdapterFactory(RxJava2CallAdapterFactory.create())
 				.addConverterFactory(GsonConverterFactory.create())
 				.build();
@@ -115,6 +117,7 @@ public class MainPresenter implements MainContract.Presenter
 									if(mainView != null)
 									{
 										mainView.showWeather(weatherResponse.getName(), weatherResponse.getWeather().get(0).getMain(), weatherResponse.getMain().getTemp());
+										mainView.showIcon(String.format(Locale.US, "%s%s%s.png", BASE_URL, "img/w/", weatherResponse.getWeather().get(0).getIcon()));
 									}
 								}
 
@@ -143,7 +146,6 @@ public class MainPresenter implements MainContract.Presenter
 								@Override
 								public void onComplete()
 								{
-
 								}
 							});
 		}

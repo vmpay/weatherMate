@@ -27,5 +27,7 @@ public interface MainContract
 		void showError();
 
 		void showWeather(@NonNull String city, @NonNull String shortDescription, @NonNull Double temperature);
+
+		void showIcon(String url);
 	}
 }
