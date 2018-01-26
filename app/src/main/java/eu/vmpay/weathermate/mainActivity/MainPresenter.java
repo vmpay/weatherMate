@@ -1,25 +1,18 @@
 package eu.vmpay.weathermate.mainActivity;
 
-import android.Manifest;
 import android.app.Activity;
-import android.content.pm.PackageManager;
 import android.location.Location;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.reactivestreams.Subscription;
 
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import eu.vmpay.weathermate.utils.location.LocationContract;
+import eu.vmpay.weathermate.utils.location.LocationService;
 import eu.vmpay.weathermate.utils.rest.OpenWeatherService;
 import eu.vmpay.weathermate.utils.rest.WeatherResponse;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -42,6 +35,7 @@ public class MainPresenter implements MainContract.Presenter
 
 	private Retrofit retrofit;
 	private OpenWeatherService openWeatherService;
+	private LocationContract locationService;
 
 	private MainContract.View mainView;
 	private DisposableSubscriber<WeatherResponse> refreshDisposable;
@@ -69,7 +63,9 @@ public class MainPresenter implements MainContract.Presenter
 				.build();
 		openWeatherService = retrofit.create(OpenWeatherService.class);
 
-		mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+		locationService = new LocationService(activity);
+		locationService.connect();
+
 	}
 
 
@@ -83,7 +79,10 @@ public class MainPresenter implements MainContract.Presenter
 	{
 		Log.d(TAG, "takeView");
 		mainView = view;
-		updateLocation();
+		if(locationService != null)
+		{
+			locationService.connect();
+		}
 	}
 
 	/**
@@ -94,6 +93,7 @@ public class MainPresenter implements MainContract.Presenter
 	{
 		Log.d(TAG, "dropView");
 		mainView = null;
+		locationService.disconnect();
 	}
 
 	@Override
@@ -105,39 +105,52 @@ public class MainPresenter implements MainContract.Presenter
 	@Override
 	public void updateLocation()
 	{
-		if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-				&& ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-		{
-			ActivityCompat.requestPermissions(activity, new String[] {
-					Manifest.permission.ACCESS_COARSE_LOCATION }, 111);
-			return;
-		}
-		mFusedLocationClient.requestLocationUpdates(new LocationRequest(), new LocationCallback(), null);
+		locationService.getLastKnownLocation();
 
-		mFusedLocationClient.getLastLocation()
-				.addOnSuccessListener(new OnSuccessListener<Location>()
-				{
-					@Override
-					public void onSuccess(Location location)
-					{
-						if(location != null)
-						{
-							Log.d(TAG, location.toString());
-						}
-						currentLocation = location;
-						loadWeather();
-					}
-				})
-				.addOnFailureListener(new OnFailureListener()
-				{
-					@Override
-					public void onFailure(@NonNull Exception e)
-					{
-						Log.d(TAG, e.toString());
-						currentLocation = null;
-						loadWeather();
-					}
-				});
+//		if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+//				&& ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+//		{
+//			ActivityCompat.requestPermissions(activity, new String[] {
+//					Manifest.permission.ACCESS_COARSE_LOCATION }, 111);
+//			return;
+//		}
+//		mFusedLocationClient.requestLocationUpdates(new LocationRequest(), new LocationCallback(), null);
+
+//		mFusedLocationClient.getLastLocation()
+//				.addOnCompleteListener(activity, new OnCompleteListener<Location>()
+//				{
+//					@Override
+//					public void onComplete(@NonNull Task<Location> task)
+//					{
+//						if(task != null && task.getResult()!= null)
+//						{
+//							Log.d(TAG, "onComplete " + task.getResult().toString());
+//						}
+//					}
+//				})
+//				.addOnSuccessListener(new OnSuccessListener<Location>()
+//				{
+//					@Override
+//					public void onSuccess(Location location)
+//					{
+//						if(location != null)
+//						{
+//							Log.d(TAG, location.toString());
+//						}
+//						currentLocation = location;
+//						loadWeather();
+//					}
+//				})
+//				.addOnFailureListener(new OnFailureListener()
+//				{
+//					@Override
+//					public void onFailure(@NonNull Exception e)
+//					{
+//						Log.d(TAG, e.toString());
+//						currentLocation = null;
+//						loadWeather();
+//					}
+//				});
 	}
 
 	private void loadWeather()

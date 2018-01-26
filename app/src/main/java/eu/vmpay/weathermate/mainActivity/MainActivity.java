@@ -58,10 +58,10 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	}
 
 	@Override
-	protected void onDestroy()
+	protected void onPause()
 	{
 		mainPresenter.dropView();
-		super.onDestroy();
+		super.onPause();
 	}
 
 	@Override
