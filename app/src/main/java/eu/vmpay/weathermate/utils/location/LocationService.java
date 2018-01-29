@@ -14,57 +14,39 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+
+import eu.vmpay.weathermate.mainActivity.MainPresenter;
 
 /**
  * Created by andrew on 1/19/18.
  */
 
-public class LocationService implements LocationContract, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener
+public class LocationService implements LocationContract.Service, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener
 {
 	private final String TAG = "LocationService";
 
 	private final GoogleApiClient mGoogleApiClient;
 
-	private FusedLocationProviderClient mFusedLocationClient;
+	private LocationContract.Receiver updateReceiver;
 	private Activity activity;
-
-	private Location currentLocation;
-	private LocationCallback mLocationCallback;
-	private LocationRequest mLocationRequest;
 
 	public LocationService(Activity activity)
 	{
 		this.activity = activity;
+
+		if(updateReceiver == null)
+		{
+			updateReceiver = MainPresenter.getInstance();
+		}
 
 		mGoogleApiClient = new GoogleApiClient.Builder(activity)
 				.addApi(LocationServices.API)
 				.addConnectionCallbacks(this)
 				.addOnConnectionFailedListener(this)
 				.build();
-
-		mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
-
-		mLocationCallback = new LocationCallback()
-		{
-			@Override
-			public void onLocationResult(LocationResult locationResult)
-			{
-				for(Location location : locationResult.getLocations())
-				{
-					Log.d(TAG, "onLocationResult " + location);
-					// Update UI with location data
-					// ...
-				}
-				stopLocationUpdates();
-			}
-		};
-		createLocationRequest();
 	}
 
 	@Override
@@ -79,7 +61,7 @@ public class LocationService implements LocationContract, GoogleApiClient.Connec
 		if((mGoogleApiClient != null) && (mGoogleApiClient.isConnected()) &&
 				(mGoogleApiClient.isConnecting()))
 		{
-			LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, mLocationCallback);
+			LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
 			mGoogleApiClient.disconnect();
 		}
 	}
@@ -89,50 +71,6 @@ public class LocationService implements LocationContract, GoogleApiClient.Connec
 	{
 		Log.d(TAG, "mGoogleApiClient onConnected");
 
-//		LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-//				.addLocationRequest(mLocationRequest);
-//
-//		SettingsClient client = LocationServices.getSettingsClient(activity);
-//		Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-//
-//		task.addOnSuccessListener(activity, new OnSuccessListener<LocationSettingsResponse>()
-//		{
-//			@Override
-//			public void onSuccess(LocationSettingsResponse locationSettingsResponse)
-//			{
-//				// All location settings are satisfied. The client can initialize
-//				// location requests here.
-//				// ...
-//				Log.d(TAG, "LocationSettingsResponse onSuccess");
-//				getLastKnownLocation();
-//			}
-//		});
-//
-//		task.addOnFailureListener(activity, new OnFailureListener()
-//		{
-//			@Override
-//			public void onFailure(@NonNull Exception e)
-//			{
-//				if(e instanceof ResolvableApiException)
-//				{
-//					Log.d(TAG, "LocationSettingsResponse onFailure " + e);
-//					// Location settings are not satisfied, but this can be fixed
-//					// by showing the user a dialog.
-//					try
-//					{
-//						// Show the dialog by calling startResolutionForResult(),
-//						// and check the result in onActivityResult().
-//						ResolvableApiException resolvable = (ResolvableApiException) e;
-//						resolvable.startResolutionForResult(activity,
-//								12);
-//					} catch(IntentSender.SendIntentException sendEx)
-//					{
-//						// Ignore the error.
-//					}
-//				}
-//			}
-//		});
-
 		getLastKnownLocation();
 	}
 
@@ -141,7 +79,7 @@ public class LocationService implements LocationContract, GoogleApiClient.Connec
 	{
 		Log.d(TAG, "mGoogleApiClient onConnectionSuspended");
 
-		LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, mLocationCallback);
+		LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
 	}
 
 	@Override
@@ -184,7 +122,6 @@ public class LocationService implements LocationContract, GoogleApiClient.Connec
          */
 		if(checkPermission())
 		{
-
 			LocationRequest locationRequest = LocationRequest.create()
 					.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
 					.setInterval(10_000)
@@ -214,32 +151,14 @@ public class LocationService implements LocationContract, GoogleApiClient.Connec
 		}
 	}
 
-	private void startLocationUpdates()
-	{
-		if(checkPermission())
-		{
-			mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-					mLocationCallback,
-					null /* Looper */);
-		}
-	}
-
-	private void stopLocationUpdates()
-	{
-		mFusedLocationClient.removeLocationUpdates(mLocationCallback);
-	}
-
-	protected void createLocationRequest()
-	{
-		mLocationRequest = new LocationRequest();
-		mLocationRequest.setInterval(10000);
-		mLocationRequest.setFastestInterval(5000);
-		mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-	}
-
 	@Override
 	public void onLocationChanged(Location location)
 	{
 		Log.d(TAG, "location " + location);
+		if(updateReceiver != null)
+		{
+			updateReceiver.onLocationUpdate(location);
+			LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+		}
 	}
 }

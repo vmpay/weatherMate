@@ -1,14 +1,25 @@
 package eu.vmpay.weathermate.utils.location;
 
+import android.location.Location;
+import android.support.annotation.Nullable;
+
 /**
  * Created by andrew on 1/19/18.
  */
 
 public interface LocationContract
 {
-	void connect();
+	interface Service
+	{
+		void connect();
 
-	void getLastKnownLocation();
+		void getLastKnownLocation();
 
-	void disconnect();
+		void disconnect();
+	}
+
+	interface Receiver
+	{
+		void onLocationUpdate(@Nullable Location location);
+	}
 }

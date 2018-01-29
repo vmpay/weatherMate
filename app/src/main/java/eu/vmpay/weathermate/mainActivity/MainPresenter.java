@@ -2,10 +2,11 @@ package eu.vmpay.weathermate.mainActivity;
 
 import android.app.Activity;
 import android.location.Location;
+import android.os.CountDownTimer;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 
 import java.util.Locale;
@@ -26,7 +27,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by andrew on 1/19/18.
  */
 
-public class MainPresenter implements MainContract.Presenter
+public class MainPresenter implements MainContract.Presenter, LocationContract.Receiver
 {
 	private final String TAG = "MainPresenter";
 	private final String BASE_URL = "https://api.openweathermap.org/";
@@ -35,13 +36,12 @@ public class MainPresenter implements MainContract.Presenter
 
 	private Retrofit retrofit;
 	private OpenWeatherService openWeatherService;
-	private LocationContract locationService;
+	private LocationContract.Service locationService;
 
 	private MainContract.View mainView;
 	private DisposableSubscriber<WeatherResponse> refreshDisposable;
-	private FusedLocationProviderClient mFusedLocationClient;
-	private Activity activity;
 	private Location currentLocation;
+	private CountDownTimer refreshTimer;
 
 	private MainPresenter()
 	{
@@ -54,7 +54,6 @@ public class MainPresenter implements MainContract.Presenter
 
 	public void setUp(Activity activity)
 	{
-		this.activity = activity;
 		Log.d(TAG, "setUp");
 		retrofit = new Retrofit.Builder()
 				.baseUrl(BASE_URL + "data/")
@@ -63,9 +62,24 @@ public class MainPresenter implements MainContract.Presenter
 				.build();
 		openWeatherService = retrofit.create(OpenWeatherService.class);
 
-		locationService = new LocationService(activity);
-		locationService.connect();
+		refreshTimer = new CountDownTimer(60_000, 60_000)
+		{
+			@Override
+			public void onTick(long millisUntilFinished)
+			{
+			}
 
+			@Override
+			public void onFinish()
+			{
+				if(mainView != null)
+				{
+					mainView.showNetworkError();
+				}
+			}
+		};
+
+		locationService = new LocationService(activity);
 	}
 
 
@@ -105,52 +119,11 @@ public class MainPresenter implements MainContract.Presenter
 	@Override
 	public void updateLocation()
 	{
+		if(refreshTimer != null)
+		{
+			refreshTimer.start();
+		}
 		locationService.getLastKnownLocation();
-
-//		if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-//				&& ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-//		{
-//			ActivityCompat.requestPermissions(activity, new String[] {
-//					Manifest.permission.ACCESS_COARSE_LOCATION }, 111);
-//			return;
-//		}
-//		mFusedLocationClient.requestLocationUpdates(new LocationRequest(), new LocationCallback(), null);
-
-//		mFusedLocationClient.getLastLocation()
-//				.addOnCompleteListener(activity, new OnCompleteListener<Location>()
-//				{
-//					@Override
-//					public void onComplete(@NonNull Task<Location> task)
-//					{
-//						if(task != null && task.getResult()!= null)
-//						{
-//							Log.d(TAG, "onComplete " + task.getResult().toString());
-//						}
-//					}
-//				})
-//				.addOnSuccessListener(new OnSuccessListener<Location>()
-//				{
-//					@Override
-//					public void onSuccess(Location location)
-//					{
-//						if(location != null)
-//						{
-//							Log.d(TAG, location.toString());
-//						}
-//						currentLocation = location;
-//						loadWeather();
-//					}
-//				})
-//				.addOnFailureListener(new OnFailureListener()
-//				{
-//					@Override
-//					public void onFailure(@NonNull Exception e)
-//					{
-//						Log.d(TAG, e.toString());
-//						currentLocation = null;
-//						loadWeather();
-//					}
-//				});
 	}
 
 	private void loadWeather()
@@ -218,9 +191,22 @@ public class MainPresenter implements MainContract.Presenter
 								@Override
 								public void onComplete()
 								{
+									if(refreshTimer != null)
+									{
+										refreshTimer.cancel();
+									}
 								}
 							});
 		}
 	}
 
+	@Override
+	public void onLocationUpdate(@Nullable Location location)
+	{
+		if(location != null)
+		{
+			currentLocation = location;
+			loadWeather();
+		}
+	}
 }
