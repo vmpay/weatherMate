@@ -6,5 +6,9 @@ package eu.vmpay.weathermate.utils.location;
 
 public interface LocationContract
 {
+	void connect();
 
+	void getLastKnownLocation();
+
+	void disconnect();
 }
