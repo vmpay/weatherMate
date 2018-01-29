@@ -96,6 +96,10 @@ public class MainPresenter implements MainContract.Presenter, LocationContract.R
 		if(locationService != null)
 		{
 			locationService.connect();
+			if(refreshTimer != null)
+			{
+				refreshTimer.start();
+			}
 		}
 	}
 
