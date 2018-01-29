@@ -1,5 +1,6 @@
 package eu.vmpay.weathermate.mainActivity;
 
+import android.app.Activity;
 import android.support.annotation.NonNull;
 
 import eu.vmpay.weathermate.BasePresenter;
@@ -13,7 +14,7 @@ public interface MainContract
 {
 	interface Presenter extends BasePresenter<View>
 	{
-		void setUp();
+		void setUp(Activity activity);
 
 		void updateWeather();
 

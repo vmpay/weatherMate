@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
+    buildToolsVersion "26.0.3"
     defaultConfig {
         applicationId "eu.vmpay.weathermate"
         minSdkVersion 25
@@ -36,4 +37,6 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.1.8'
 
     implementation 'com.squareup.picasso:picasso:2.5.2'
+
+    implementation 'com.google.android.gms:play-services-location:11.8.0'
 }

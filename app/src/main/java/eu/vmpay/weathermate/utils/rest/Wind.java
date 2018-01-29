@@ -1,5 +1,5 @@
 
-package eu.vmpay.weathermate.utils;
+package eu.vmpay.weathermate.utils.rest;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -12,7 +12,7 @@ public class Wind
 	private Double speed;
 	@SerializedName("deg")
 	@Expose
-	private Integer deg;
+	private Double deg;
 
 	public Double getSpeed()
 	{
@@ -24,12 +24,12 @@ public class Wind
 		this.speed = speed;
 	}
 
-	public Integer getDeg()
+	public Double getDeg()
 	{
 		return deg;
 	}
 
-	public void setDeg(Integer deg)
+	public void setDeg(Double deg)
 	{
 		this.deg = deg;
 	}

@@ -44,7 +44,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 		{
 			mainPresenter = MainPresenter.getInstance();
 		}
-		mainPresenter.setUp();
+		mainPresenter.setUp(this);
 
 		// Enables Always-on
 		setAmbientEnabled();
@@ -58,15 +58,17 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	}
 
 	@Override
-	protected void onDestroy()
+	protected void onPause()
 	{
 		mainPresenter.dropView();
-		super.onDestroy();
+		super.onPause();
 	}
 
 	@Override
 	public void showNetworkError()
 	{
+		pbRefresh.setVisibility(View.GONE);
+		llWeather.setVisibility(View.VISIBLE);
 		tvCity.setText(R.string.empty_string);
 		tvTemperature.setText(R.string.network_error);
 		ivWeather.setImageResource(R.mipmap.ic_launcher);
@@ -75,6 +77,8 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	@Override
 	public void showError()
 	{
+		pbRefresh.setVisibility(View.GONE);
+		llWeather.setVisibility(View.VISIBLE);
 		tvCity.setText(R.string.empty_string);
 		tvTemperature.setText(R.string.unknown_error);
 		ivWeather.setImageResource(R.mipmap.ic_launcher);
@@ -102,6 +106,13 @@ public class MainActivity extends WearableActivity implements MainContract.View
 		pbRefresh.setVisibility(View.VISIBLE);
 		llWeather.setVisibility(View.GONE);
 
-		mainPresenter.updateWeather();
+		mainPresenter.updateLocation();
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+	{
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		mainPresenter.updateLocation();
 	}
 }
