@@ -17,6 +17,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.wearable.Wearable;
 
 import eu.vmpay.weathermate.mainActivity.MainPresenter;
 
@@ -30,20 +31,21 @@ public class LocationService implements LocationContract.Service, GoogleApiClien
 
 	private final GoogleApiClient mGoogleApiClient;
 
-	private LocationContract.Receiver updateReceiver;
+	private LocationContract.Receiver receiver;
 	private Activity activity;
 
 	public LocationService(Activity activity)
 	{
 		this.activity = activity;
 
-		if(updateReceiver == null)
+		if(receiver == null)
 		{
-			updateReceiver = MainPresenter.getInstance();
+			receiver = MainPresenter.getInstance();
 		}
 
 		mGoogleApiClient = new GoogleApiClient.Builder(activity)
 				.addApi(LocationServices.API)
+				.addApi(Wearable.API)
 				.addConnectionCallbacks(this)
 				.addOnConnectionFailedListener(this)
 				.build();
@@ -115,6 +117,13 @@ public class LocationService implements LocationContract.Service, GoogleApiClien
 	@Override
 	public void getLastKnownLocation()
 	{
+//		if(!hasGps() && receiver != null)
+//		{
+//			Log.d(TAG, "No FEATURE_LOCATION_GPS detected");
+//			receiver.postError();
+//			return;
+//		}
+
 		/*
 		 * mGpsPermissionApproved covers 23+ (M+) style permissions. If that is already approved or
          * the device is pre-23, the app uses mSaveGpsLocation to save the user's location
@@ -155,10 +164,16 @@ public class LocationService implements LocationContract.Service, GoogleApiClien
 	public void onLocationChanged(Location location)
 	{
 		Log.d(TAG, "location " + location);
-		if(updateReceiver != null)
+		if(receiver != null)
 		{
-			updateReceiver.onLocationUpdate(location);
+			receiver.onLocationUpdate(location);
 			LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
 		}
 	}
+
+	private boolean hasGps()
+	{
+		return activity != null && activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
+	}
+
 }
