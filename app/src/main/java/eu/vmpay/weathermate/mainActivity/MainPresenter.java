@@ -213,4 +213,13 @@ public class MainPresenter implements MainContract.Presenter, LocationContract.R
 			loadWeather();
 		}
 	}
+
+	@Override
+	public void postError()
+	{
+		if(mainView != null)
+		{
+			mainView.showError();
+		}
+	}
 }

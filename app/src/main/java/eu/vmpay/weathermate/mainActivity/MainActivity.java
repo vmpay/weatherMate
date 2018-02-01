@@ -7,7 +7,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -25,7 +24,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	private TextView tvCity;
 	private TextView tvTemperature;
 	private ImageView ivWeather;
-	private ProgressBar pbRefresh;
+	private LinearLayout llRefresh;
 	private LinearLayout llWeather;
 
 	@Override
@@ -37,7 +36,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 		tvCity = findViewById(R.id.tvCity);
 		tvTemperature = findViewById(R.id.tvTemperature);
 		ivWeather = findViewById(R.id.ivWeather);
-		pbRefresh = findViewById(R.id.pbRefresh);
+		llRefresh = findViewById(R.id.llRefresh);
 		llWeather = findViewById(R.id.llWeather);
 
 		if(mainPresenter == null)
@@ -67,7 +66,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	@Override
 	public void showNetworkError()
 	{
-		pbRefresh.setVisibility(View.GONE);
+		llRefresh.setVisibility(View.GONE);
 		llWeather.setVisibility(View.VISIBLE);
 		tvCity.setText(R.string.empty_string);
 		tvTemperature.setText(R.string.network_error);
@@ -77,7 +76,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	@Override
 	public void showError()
 	{
-		pbRefresh.setVisibility(View.GONE);
+		llRefresh.setVisibility(View.GONE);
 		llWeather.setVisibility(View.VISIBLE);
 		tvCity.setText(R.string.empty_string);
 		tvTemperature.setText(R.string.unknown_error);
@@ -90,7 +89,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 		tvCity.setText(city);
 		tvTemperature.setText(String.format(Locale.US, "%.2f C\u00b0", temperature));
 
-		pbRefresh.setVisibility(View.GONE);
+		llRefresh.setVisibility(View.GONE);
 		llWeather.setVisibility(View.VISIBLE);
 	}
 
@@ -103,7 +102,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 
 	public void refresh(View view)
 	{
-		pbRefresh.setVisibility(View.VISIBLE);
+		llRefresh.setVisibility(View.VISIBLE);
 		llWeather.setVisibility(View.GONE);
 
 		mainPresenter.updateLocation();

@@ -6,7 +6,6 @@ import com.google.gson.annotations.SerializedName;
 
 public class Coord
 {
-
 	@SerializedName("lon")
 	@Expose
 	private Double lon;
@@ -34,4 +33,12 @@ public class Coord
 		this.lat = lat;
 	}
 
+	@Override
+	public String toString()
+	{
+		return "Coord{" +
+				"lon=" + lon +
+				", lat=" + lat +
+				'}';
+	}
 }

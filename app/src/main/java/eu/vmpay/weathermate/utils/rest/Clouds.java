@@ -21,4 +21,11 @@ public class Clouds
 		this.all = all;
 	}
 
+	@Override
+	public String toString()
+	{
+		return "Clouds{" +
+				"all=" + all +
+				'}';
+	}
 }

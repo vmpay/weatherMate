@@ -6,7 +6,6 @@ import com.google.gson.annotations.SerializedName;
 
 public class Wind
 {
-
 	@SerializedName("speed")
 	@Expose
 	private Double speed;
@@ -34,4 +33,12 @@ public class Wind
 		this.deg = deg;
 	}
 
+	@Override
+	public String toString()
+	{
+		return "Wind{" +
+				"speed=" + speed +
+				", deg=" + deg +
+				'}';
+	}
 }

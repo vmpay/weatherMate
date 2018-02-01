@@ -6,7 +6,6 @@ import com.google.gson.annotations.SerializedName;
 
 public class Sys
 {
-
 	@SerializedName("type")
 	@Expose
 	private Integer type;
@@ -86,4 +85,16 @@ public class Sys
 		this.sunset = sunset;
 	}
 
+	@Override
+	public String toString()
+	{
+		return "Sys{" +
+				"type=" + type +
+				", id=" + id +
+				", message=" + message +
+				", country='" + country + '\'' +
+				", sunrise=" + sunrise +
+				", sunset=" + sunset +
+				'}';
+	}
 }

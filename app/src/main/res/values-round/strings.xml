@@ -1,3 +1,4 @@
 <resources>
 	<string name="hello_world">Hello Round World!</string>
+	<string name="acquiring_gps">acquiring your position</string>
 </resources>

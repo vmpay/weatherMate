@@ -21,5 +21,7 @@ public interface LocationContract
 	interface Receiver
 	{
 		void onLocationUpdate(@Nullable Location location);
+
+		void postError();
 	}
 }
