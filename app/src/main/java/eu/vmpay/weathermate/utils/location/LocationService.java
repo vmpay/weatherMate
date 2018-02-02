@@ -49,6 +49,8 @@ public class LocationService implements LocationContract.Service, GoogleApiClien
 				.addConnectionCallbacks(this)
 				.addOnConnectionFailedListener(this)
 				.build();
+
+		connect();
 	}
 
 	@Override
@@ -129,6 +131,12 @@ public class LocationService implements LocationContract.Service, GoogleApiClien
          * the device is pre-23, the app uses mSaveGpsLocation to save the user's location
          * preference.
          */
+
+		if(!mGoogleApiClient.isConnected())
+		{
+			return;
+		}
+
 		if(checkPermission())
 		{
 			LocationRequest locationRequest = LocationRequest.create()

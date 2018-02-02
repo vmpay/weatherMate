@@ -3,6 +3,7 @@ package eu.vmpay.weathermate.mainActivity;
 import android.app.Activity;
 import android.location.Location;
 import android.os.CountDownTimer;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -10,7 +11,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import eu.vmpay.weathermate.utils.location.LocationContract;
 import eu.vmpay.weathermate.utils.location.LocationService;
@@ -40,8 +40,8 @@ public class MainPresenter implements MainContract.Presenter, LocationContract.R
 
 	private MainContract.View mainView;
 	private DisposableSubscriber<WeatherResponse> refreshDisposable;
-	private Location currentLocation;
-	private CountDownTimer refreshTimer;
+	private CountDownTimer refreshLocationTimer;
+	private CountDownTimer requestWeatherTimer;
 
 	private MainPresenter()
 	{
@@ -62,7 +62,23 @@ public class MainPresenter implements MainContract.Presenter, LocationContract.R
 				.build();
 		openWeatherService = retrofit.create(OpenWeatherService.class);
 
-		refreshTimer = new CountDownTimer(60_000, 60_000)
+		refreshLocationTimer = new CountDownTimer(60_000, 60_000)
+		{
+			@Override
+			public void onTick(long millisUntilFinished)
+			{
+			}
+
+			@Override
+			public void onFinish()
+			{
+				if(mainView != null)
+				{
+					mainView.showLocationError();
+				}
+			}
+		};
+		requestWeatherTimer = new CountDownTimer(60_000, 60_000)
 		{
 			@Override
 			public void onTick(long millisUntilFinished)
@@ -93,14 +109,7 @@ public class MainPresenter implements MainContract.Presenter, LocationContract.R
 	{
 		Log.d(TAG, "takeView");
 		mainView = view;
-		if(locationService != null)
-		{
-			locationService.connect();
-			if(refreshTimer != null)
-			{
-				refreshTimer.start();
-			}
-		}
+		loadCachedWeather();
 	}
 
 	/**
@@ -111,34 +120,60 @@ public class MainPresenter implements MainContract.Presenter, LocationContract.R
 	{
 		Log.d(TAG, "dropView");
 		mainView = null;
-		locationService.disconnect();
+//		locationService.disconnect();
 	}
 
 	@Override
 	public void updateWeather()
 	{
-		loadWeather();
+		loadCachedWeather();
 	}
 
 	@Override
 	public void updateLocation()
 	{
-		if(refreshTimer != null)
+		if(refreshLocationTimer != null)
 		{
-			refreshTimer.start();
+			refreshLocationTimer.start();
 		}
 		locationService.getLastKnownLocation();
 	}
 
-	private void loadWeather()
+	private void loadCachedWeather()
 	{
-		String lat = "52.229816";
-		String lon = "21.011761";
-		if(currentLocation != null)
+		float[] location = null;
+		if(mainView != null)
 		{
-			lat = String.format(Locale.US, "%f", currentLocation.getLatitude());
-			lon = String.format(Locale.US, "%f", currentLocation.getLongitude());
+			location = mainView.readLocationData();
+			if(location != null && location.length == 2 && location[0] != 0 && location[1] != 0)
+			{
+				loadWeather(location[0], location[1]);
+			}
+			if(locationService != null)
+			{
+				locationService.getLastKnownLocation();
+			}
 		}
+	}
+
+	private void loadWeather(@NonNull Location location)
+	{
+		loadWeather(location.getLatitude(), location.getLongitude());
+	}
+
+	private void loadWeather(double latitude, double longitude)
+	{
+		loadWeather((float) latitude, (float) longitude);
+	}
+
+	private void loadWeather(float latitude, float longitude)
+	{
+		if(requestWeatherTimer != null)
+		{
+			requestWeatherTimer.start();
+		}
+		String lat = String.format(Locale.US, "%f", latitude);
+		String lon = String.format(Locale.US, "%f", longitude);
 		Log.d(TAG, String.format(Locale.US, "lat: %s, lon: %s", lat, lon));
 		if(openWeatherService != null)
 		{
@@ -149,7 +184,7 @@ public class MainPresenter implements MainContract.Presenter, LocationContract.R
 
 			refreshDisposable =
 					openWeatherService.getWeatherByCoordinates("15646a06818f61f7b8d7823ca833e1ce", lat, lon, "metric")
-							.delay(600, TimeUnit.MILLISECONDS)
+//							.delay(600, TimeUnit.MILLISECONDS)
 							.subscribeOn(Schedulers.newThread())
 							.observeOn(AndroidSchedulers.mainThread())
 							.subscribeWith(new DisposableSubscriber<WeatherResponse>()
@@ -195,9 +230,9 @@ public class MainPresenter implements MainContract.Presenter, LocationContract.R
 								@Override
 								public void onComplete()
 								{
-									if(refreshTimer != null)
+									if(requestWeatherTimer != null)
 									{
-										refreshTimer.cancel();
+										requestWeatherTimer.cancel();
 									}
 								}
 							});
@@ -207,10 +242,24 @@ public class MainPresenter implements MainContract.Presenter, LocationContract.R
 	@Override
 	public void onLocationUpdate(@Nullable Location location)
 	{
+		if(refreshLocationTimer != null)
+		{
+			refreshLocationTimer.cancel();
+		}
 		if(location != null)
 		{
-			currentLocation = location;
-			loadWeather();
+			loadWeather(location);
+			if(mainView != null)
+			{
+				mainView.writeLocationData(location);
+			}
+		}
+		else
+		{
+			if(mainView != null)
+			{
+				mainView.showLocationError();
+			}
 		}
 	}
 

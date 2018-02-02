@@ -6,7 +6,8 @@
     -->
 	<string name="hello_world">Hello Square World!</string>
 	<string name="empty_string"/>
-	<string name="network_error">Network error</string>
+	<string name="network_error">network error</string>
 	<string name="unknown_error">gps module error</string>
 	<string name="acquiring_gps">acquiring your position</string>
+	<string name="location_error">location error</string>
 </resources>

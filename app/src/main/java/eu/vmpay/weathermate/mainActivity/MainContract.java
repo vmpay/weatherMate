@@ -1,6 +1,7 @@
 package eu.vmpay.weathermate.mainActivity;
 
 import android.app.Activity;
+import android.location.Location;
 import android.support.annotation.NonNull;
 
 import eu.vmpay.weathermate.BasePresenter;
@@ -25,10 +26,16 @@ public interface MainContract
 	{
 		void showNetworkError();
 
+		void showLocationError();
+
 		void showError();
 
 		void showWeather(@NonNull String city, @NonNull String shortDescription, @NonNull Double temperature);
 
 		void showIcon(String url);
+
+		boolean writeLocationData(@NonNull Location location);
+
+		float[] readLocationData();
 	}
 }

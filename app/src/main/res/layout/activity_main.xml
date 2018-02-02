@@ -6,7 +6,6 @@
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:background="@color/dark_grey"
 	android:padding="@dimen/box_inset_layout_padding"
 	tools:context="eu.vmpay.weathermate.mainActivity.MainActivity"
 	tools:deviceIds="wear">
@@ -14,14 +13,15 @@
 	<RelativeLayout
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		app:boxedEdges="all">
+		app:boxedEdges="none">
 
 		<LinearLayout
 			android:id="@+id/llRefresh"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			android:gravity="center"
-			android:orientation="vertical">
+			android:orientation="vertical"
+			android:visibility="gone">
 
 			<ProgressBar
 				android:id="@+id/pbRefresh"
@@ -39,34 +39,57 @@
 		</LinearLayout>
 
 		<LinearLayout
-			android:id="@+id/llWeather"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			android:gravity="center"
-			android:onClick="refresh"
 			android:orientation="vertical"
 			android:padding="@dimen/inner_frame_layout_padding"
-			android:visibility="gone">
+			android:visibility="visible">
 
-			<TextView
-				android:id="@+id/tvCity"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="City"
-				android:textSize="20sp"/>
+			<android.support.v4.widget.SwipeRefreshLayout
+				android:id="@+id/swipeRefresh"
+				xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent">
 
-			<ImageView
-				android:id="@+id/ivWeather"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:src="@mipmap/ic_launcher"/>
+				<ScrollView
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:fillViewport="true">
 
-			<TextView
-				android:id="@+id/tvTemperature"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="Description"
-				android:textSize="20sp"/>
+					<LinearLayout
+						android:id="@+id/llWeather"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:gravity="center"
+						android:orientation="vertical">
+
+						<TextView
+							android:id="@+id/tvCity"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="City"
+							android:textSize="20sp"/>
+
+						<ImageView
+							android:id="@+id/ivWeather"
+							android:layout_width="@dimen/diag_shade_height_round"
+							android:layout_height="@dimen/diag_shade_height_round"
+							android:padding="@dimen/dismiss_padding"
+							android:src="@mipmap/ic_launcher"/>
+
+						<TextView
+							android:id="@+id/tvTemperature"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="Description"
+							android:textSize="20sp"/>
+
+					</LinearLayout>
+
+				</ScrollView>
+
+			</android.support.v4.widget.SwipeRefreshLayout>
 
 		</LinearLayout>
 

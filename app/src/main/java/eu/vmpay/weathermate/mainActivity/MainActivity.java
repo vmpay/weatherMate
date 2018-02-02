@@ -1,7 +1,9 @@
 package eu.vmpay.weathermate.mainActivity;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.View;
@@ -14,8 +16,9 @@ import com.squareup.picasso.Picasso;
 import java.util.Locale;
 
 import eu.vmpay.weathermate.R;
+import eu.vmpay.weathermate.SharedPreferencesUtils;
 
-public class MainActivity extends WearableActivity implements MainContract.View
+public class MainActivity extends WearableActivity implements MainContract.View, SwipeRefreshLayout.OnRefreshListener, View.OnClickListener
 {
 	private final String TAG = "MainActivity";
 
@@ -24,8 +27,8 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	private TextView tvCity;
 	private TextView tvTemperature;
 	private ImageView ivWeather;
-	private LinearLayout llRefresh;
 	private LinearLayout llWeather;
+	private SwipeRefreshLayout swipeRefreshLayout;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -36,9 +39,15 @@ public class MainActivity extends WearableActivity implements MainContract.View
 		tvCity = findViewById(R.id.tvCity);
 		tvTemperature = findViewById(R.id.tvTemperature);
 		ivWeather = findViewById(R.id.ivWeather);
-		llRefresh = findViewById(R.id.llRefresh);
 		llWeather = findViewById(R.id.llWeather);
+		swipeRefreshLayout = findViewById(R.id.swipeRefresh);
 
+		llWeather.setOnClickListener(this);
+		if(swipeRefreshLayout != null)
+		{
+			swipeRefreshLayout.setOnRefreshListener(this);
+			swipeRefreshLayout.setOnClickListener(this);
+		}
 		if(mainPresenter == null)
 		{
 			mainPresenter = MainPresenter.getInstance();
@@ -66,18 +75,28 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	@Override
 	public void showNetworkError()
 	{
-		llRefresh.setVisibility(View.GONE);
-		llWeather.setVisibility(View.VISIBLE);
+		swipeRefreshLayout.setRefreshing(false);
+
 		tvCity.setText(R.string.empty_string);
 		tvTemperature.setText(R.string.network_error);
 		ivWeather.setImageResource(R.mipmap.ic_launcher);
 	}
 
 	@Override
+	public void showLocationError()
+	{
+		swipeRefreshLayout.setRefreshing(false);
+
+		tvCity.setText(R.string.empty_string);
+		tvTemperature.setText(R.string.location_error);
+		ivWeather.setImageResource(R.mipmap.ic_launcher);
+	}
+
+	@Override
 	public void showError()
 	{
-		llRefresh.setVisibility(View.GONE);
-		llWeather.setVisibility(View.VISIBLE);
+		swipeRefreshLayout.setRefreshing(false);
+
 		tvCity.setText(R.string.empty_string);
 		tvTemperature.setText(R.string.unknown_error);
 		ivWeather.setImageResource(R.mipmap.ic_launcher);
@@ -89,8 +108,7 @@ public class MainActivity extends WearableActivity implements MainContract.View
 		tvCity.setText(city);
 		tvTemperature.setText(String.format(Locale.US, "%.2f C\u00b0", temperature));
 
-		llRefresh.setVisibility(View.GONE);
-		llWeather.setVisibility(View.VISIBLE);
+		swipeRefreshLayout.setRefreshing(false);
 	}
 
 	@Override
@@ -100,12 +118,16 @@ public class MainActivity extends WearableActivity implements MainContract.View
 		Picasso.with(this).load(url).into(ivWeather);
 	}
 
-	public void refresh(View view)
+	@Override
+	public boolean writeLocationData(@NonNull Location location)
 	{
-		llRefresh.setVisibility(View.VISIBLE);
-		llWeather.setVisibility(View.GONE);
+		return SharedPreferencesUtils.writeLocationData(this, location);
+	}
 
-		mainPresenter.updateLocation();
+	@Override
+	public float[] readLocationData()
+	{
+		return SharedPreferencesUtils.readLocationData(this);
 	}
 
 	@Override
@@ -113,5 +135,35 @@ public class MainActivity extends WearableActivity implements MainContract.View
 	{
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 		mainPresenter.updateLocation();
+	}
+
+	/**
+	 * Called when a swipe gesture triggers a refresh.
+	 */
+	@Override
+	public void onRefresh()
+	{
+		if(mainPresenter != null)
+		{
+			swipeRefreshLayout.setRefreshing(false);
+
+			mainPresenter.updateWeather();
+		}
+	}
+
+	/**
+	 * Called when a view has been clicked.
+	 *
+	 * @param v The view that was clicked.
+	 */
+	@Override
+	public void onClick(View v)
+	{
+		if(mainPresenter != null)
+		{
+			swipeRefreshLayout.setRefreshing(true);
+
+			mainPresenter.updateLocation();
+		}
 	}
 }
