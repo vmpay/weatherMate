@@ -68,21 +68,22 @@
 							android:id="@+id/tvCity"
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
-							android:text="City"
+							android:text="@string/hello_world"
+							android:textAlignment="center"
 							android:textSize="20sp"/>
 
 						<ImageView
 							android:id="@+id/ivWeather"
-							android:layout_width="@dimen/diag_shade_height_round"
-							android:layout_height="@dimen/diag_shade_height_round"
-							android:padding="@dimen/dismiss_padding"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
 							android:src="@mipmap/ic_launcher"/>
 
 						<TextView
 							android:id="@+id/tvTemperature"
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
-							android:text="Description"
+							android:text="@string/acquiring_gps"
+							android:textAlignment="center"
 							android:textSize="20sp"/>
 
 					</LinearLayout>
