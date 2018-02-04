@@ -1,4 +1,8 @@
 <resources>
-	<string name="hello_world">Hello Round World!</string>
-	<string name="acquiring_gps">acquiring your position</string>
+	<string name="hello_world">Hello!</string>
+	<string name="empty_string"/>
+	<string name="network_error">network error</string>
+	<string name="unknown_error">gps module error</string>
+	<string name="acquiring_gps">acquiring your\nposition</string>
+	<string name="location_error">location error</string>
 </resources>
