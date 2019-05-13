@@ -2,7 +2,7 @@ package eu.vmpay.weathermate.mainActivity;
 
 import android.app.Activity;
 import android.location.Location;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import eu.vmpay.weathermate.BasePresenter;
 import eu.vmpay.weathermate.BaseView;
